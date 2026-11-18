@@ -15,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 pytestmark = pytest.mark.skipif(sys.platform == "win32", reason="needs a pty")
 
 
-def run_in_pty(args, send_sigint_after=None, timeout=15.0):
+def run_in_pty(args, send_sigint_after=None, timeout=15.0, keys_after=None):
     pid, fd = pty.fork()
     if pid == 0:
         os.environ.update(TERM="xterm-256color", LANG="C.UTF-8", LC_ALL="C.UTF-8",
@@ -24,11 +24,16 @@ def run_in_pty(args, send_sigint_after=None, timeout=15.0):
     out = b""
     start = time.monotonic()
     sent = False
+    keys_sent = False
     while time.monotonic() - start < timeout:
         if send_sigint_after is not None and not sent and \
                 time.monotonic() - start > send_sigint_after:
             os.kill(pid, signal.SIGINT)
             sent = True
+        if keys_after is not None and not keys_sent and \
+                time.monotonic() - start > keys_after[0]:
+            os.write(fd, keys_after[1])
+            keys_sent = True
         r, _, _ = select.select([fd], [], [], 0.05)
         if r:
             try:
@@ -66,8 +71,16 @@ def test_cancellable_stops_on_ctrl_c():
     assert took < 10
 
 
-def test_message_is_typed():
-    code, out, _ = run_in_pty(["-a", "-d", "0.2", "-s", "4", "-m", "HELLO"])
+def test_message_is_typed_and_stays_until_a_key():
+    args = ["-a", "-d", "0.2", "-s", "4", "-m", "HELLO"]
+    code, out, took = run_in_pty(args, keys_after=(4.0, b"x"))
     assert code == 0
     for ch in "HELLO":
         assert ch.encode() in out
+    assert took >= 4.0  # waited for the key
+
+
+def test_message_waits_without_a_key():
+    pid_timeout = 3.0
+    with pytest.raises(pytest.fail.Exception, match="did not exit"):
+        run_in_pty(["-a", "-d", "0.2", "-s", "4", "-m", "HI"], timeout=pid_timeout)

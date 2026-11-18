@@ -92,7 +92,11 @@ def _type_message(scr, message: str, attr: int, delay: float) -> None:
         time.sleep(delay)
     _put(scr, y, x + len(message), " ", attr)
     scr.refresh()
-    time.sleep(1.2)
+    # Stay until a key is pressed (keys pressed during the rain don't count).
+    curses.flushinp()
+    scr.nodelay(False)
+    while scr.getch() in (curses.KEY_RESIZE, -1):
+        pass
 
 
 def run(scr, args: argparse.Namespace) -> None:

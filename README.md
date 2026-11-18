@@ -24,7 +24,7 @@ matrix -c              # allow Ctrl+C
 matrix -s 2            # twice as fast
 matrix --density 1.5   # heavier rain (0.1-2)
 matrix -a              # ASCII only (also automatic on non-UTF-8 terminals)
-matrix -m "follow the white rabbit"   # typed out when the rain ends
+matrix -m "follow the white rabbit"   # typed out at the end, stays until a key
 ```
 
 Prank idea, the `sl` way: `alias mtrix=matrix`, or `alias cls=matrix`.
