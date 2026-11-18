@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Digital rain in your terminal. Like sl, you can't stop it."
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 
 [project.scripts]
 matrix = "matrix_rain.cli:main"
