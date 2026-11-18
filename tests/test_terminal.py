@@ -24,16 +24,21 @@ def run_in_pty(args, send_sigint_after=None, timeout=15.0, keys_after=None):
     out = b""
     start = time.monotonic()
     sent = False
-    keys_sent = False
+    keys_sent = 0.0
     while time.monotonic() - start < timeout:
         if send_sigint_after is not None and not sent and \
                 time.monotonic() - start > send_sigint_after:
             os.kill(pid, signal.SIGINT)
             sent = True
-        if keys_after is not None and not keys_sent and \
-                time.monotonic() - start > keys_after[0]:
-            os.write(fd, keys_after[1])
-            keys_sent = True
+        # Keep pressing the key every 0.5 s once the delay has passed
+        # (keys pressed while the message is still being typed are ignored).
+        if keys_after is not None and time.monotonic() - start > keys_after[0] \
+                and time.monotonic() - keys_sent > 0.5:
+            try:
+                os.write(fd, keys_after[1])
+            except OSError:
+                pass
+            keys_sent = time.monotonic()
         r, _, _ = select.select([fd], [], [], 0.05)
         if r:
             try:
