@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "matrix-rain"
+version = "1.0.0"
+description = "Digital rain in your terminal. Like sl, you can't stop it."
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.9"
+
+[project.scripts]
+matrix = "matrix_rain.cli:main"
+
+[tool.setuptools]
+packages = ["matrix_rain"]
